@@ -3,12 +3,12 @@
 from setuptools import setup
 
 setup(
-    name='sphinx-autodoc-typehints',
+    name='sphinx-autodoc-types',
     use_scm_version=True,
-    description='Type hints (PEP 484) support for the Sphinx autodoc extension',
-    author='Alex Grönholm',
-    author_email='alex.gronholm@nextday.fi',
-    url='https://github.com/agronholm/sphinx-autodoc-typehints',
+    description='Type hints (PEP 484) support for the Sphinx autodoc extension (comments too)',
+    author='Bernat Gabor',
+    author_email='bgabor8@bloomberg.net',
+    url='https://github.com/bgabor8/sphinx-autodoc-typehints',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Framework :: Sphinx :: Extension',
