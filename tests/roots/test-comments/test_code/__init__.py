@@ -3,7 +3,7 @@
 from typing import Tuple, Union
 
 
-def test_param_init_return_str(param):
+def test_param_init_return_str(param):  # type: ignore
     # type: (int) -> str
     """ Test one init param and return value is str.
 

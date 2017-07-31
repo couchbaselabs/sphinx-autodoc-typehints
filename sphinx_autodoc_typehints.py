@@ -3,14 +3,14 @@
 
 import inspect
 from inspect import unwrap
-from io import BytesIO
-import re
-from tokenize import COMMENT, INDENT, OP, tokenize
 from typing import Any, AnyStr, GenericMeta, TypeVar, get_type_hints
 
+from io import BytesIO
+import re
 from sphinx.ext.autodoc import formatargspec
 from sphinx.util import logging
 from sphinx.util.inspect import getargspec
+from tokenize import COMMENT, INDENT, OP, tokenize
 
 TYPE_MARKER = '# type: '
 
@@ -152,7 +152,7 @@ def process_docstring(app, what, name, obj, options, lines):  # pylint: disable=
         insert_type_hints(lines, type_hints, what, app.config.sphinx_autodoc_alias)
 
 
-def insert_type_hints(lines, type_hints, what,aliases):
+def insert_type_hints(lines, type_hints, what, aliases):
     for arg_name, annotation in type_hints.items():
         formatted_annotation = format_annotation(annotation, aliases)
         if arg_name == 'return':
@@ -219,7 +219,8 @@ def get_comment_type_str(obj):
                     break
                 elif tok_num == COMMENT and tok_val.startswith(TYPE_MARKER):
                     type_info = tok_val[len(TYPE_MARKER):]
-                    break
+                    if type_info.strip() != 'ignore':
+                        break
     except (IOError, TypeError):
         pass
     return type_info
