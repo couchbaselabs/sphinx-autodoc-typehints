@@ -1,5 +1,5 @@
 typehints
 =========
 
-.. automodule:: test_code
+.. automodule:: test_code_annotation
 	:members:

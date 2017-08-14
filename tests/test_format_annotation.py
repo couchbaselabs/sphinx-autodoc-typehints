@@ -1,6 +1,6 @@
+from collections import namedtuple
 from typing import Any, AnyStr, Callable, Dict, Generic, Mapping, Optional, Pattern, Tuple, Type, TypeVar, Union
 
-from collections import namedtuple
 import pytest
 
 from sphinx_autodoc_typehints import format_annotation, process_docstring
@@ -8,6 +8,7 @@ from sphinx_autodoc_typehints import format_annotation, process_docstring
 T = TypeVar('T')
 U = TypeVar('U', covariant=True)
 V = TypeVar('V', contravariant=True)
+EitherTypeVar = TypeVar('EitherTypeVar', int, str)  # pylint: disable=invalid-name
 
 
 class ExampleA:
@@ -17,6 +18,9 @@ class ExampleA:
 
 class ExampleB(Generic[T]):
     pass
+
+
+BoundTypeVar = TypeVar('BoundTypeVar', bound=ExampleA)  # pylint: disable=invalid-name
 
 
 class Slotted:
@@ -59,7 +63,9 @@ class Slotted:
     (Pattern, ':class:`~typing.Pattern`\\[:data:`~typing.AnyStr`]'),
     (Pattern[str], ':class:`~typing.Pattern`\\[:class:`str`]'),
     (ExampleA, ':class:`~%s.ExampleA`' % __name__),
-    (ExampleB, ':class:`~%s.ExampleB`\\[\\~T]' % __name__)
+    (ExampleB, ':class:`~%s.ExampleB`\\[\\~T]' % __name__),
+    (EitherTypeVar, ':class:`~typing.TypeVar`\\("EitherTypeVar", :class:`int`, :class:`str`)'),
+    (BoundTypeVar, ':class:`~typing.TypeVar`\\("BoundTypeVar", bound= :class:`~{}.ExampleA`)'.format(__name__))
 ])
 def test_format_annotation(annotation, expected_result):
     result = format_annotation(annotation, {})
@@ -73,13 +79,13 @@ def test_format_annotation_test():
 
 @pytest.mark.skipif(Type is None, reason='Type does not exist in the typing module')
 @pytest.mark.parametrize('type_param, expected_result', [
-    (None, ':class:`~typing.Type`\\[\\+CT'),
+    (None, ':class:`~typing.Type`\\[:class:`~typing.TypeVar`\\("CT_co", bound= :class:`type`)]'),
     (ExampleA, ':class:`~typing.Type`\\[:class:`~%s.ExampleA`]' % __name__)
 ])
 def test_format_annotation_type(type_param, expected_result):
     annotation = Type[type_param] if type_param else Type
     result = format_annotation(annotation, {})
-    assert result.startswith(expected_result)
+    assert result == expected_result
 
 
 Config = namedtuple('Config', ['config'])

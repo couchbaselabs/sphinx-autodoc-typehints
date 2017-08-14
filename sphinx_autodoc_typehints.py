@@ -49,7 +49,7 @@ def format_typing_annotation(annotation, annotation_cls, aliases):
     elif annotation is AnyStr:
         return ':data:`~typing.AnyStr`'
     elif isinstance(annotation, TypeVar):
-        return '\\%r' % annotation
+        return handle_type_var(annotation)
     elif class_name in ('Union', '_Union'):
         class_name, params, prefix = format_union_annotation(annotation, class_name, params, prefix, aliases)
     elif annotation_cls.__qualname__ == 'Tuple' and hasattr(annotation, '__tuple_params__'):
@@ -70,6 +70,16 @@ def format_typing_annotation(annotation, annotation_cls, aliases):
     if params:
         extra = '\\[{}]'.format(', '.join(format_annotation(param, aliases) for param in params))
     return '{}`~typing.{}`{}'.format(prefix, class_name, extra)
+
+
+def handle_type_var(annotation):
+    if annotation.__constraints__:
+        args = ', '.join(format_annotation(c, {}) for c in annotation.__constraints__)
+        return ':class:`~typing.TypeVar`\\("{}", {})'.format(annotation.__name__, args)
+    elif annotation.__bound__:
+        return ':class:`~typing.TypeVar`\\("{}", bound= {})'.format(annotation.__name__,
+                                                                    format_annotation(annotation.__bound__, {}))
+    return '\\%r' % annotation
 
 
 def format_callable_annotation(annotation, params, prefix, aliases):

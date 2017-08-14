@@ -1,6 +1,9 @@
 # coding=utf-8
 """ Test type hints. """
-from typing import Tuple, Union
+from typing import Tuple, TypeVar, Union
+
+BoundArg = TypeVar('BoundArg', bound=int)  # pylint: disable=invalid-name
+EitherOfArg = TypeVar('EitherOfArg', str, int)  # pylint: disable=invalid-name
 
 
 def test_param_init_return_str(param: int) -> str:
@@ -43,3 +46,13 @@ def test_param_init_return_union_str_int(param: Union[str, int], i: int) -> Unio
     :return: increase value with one
     """
     return param
+
+
+def test_type_var(bound_arg: BoundArg, either_arg: EitherOfArg) -> Tuple[BoundArg, EitherOfArg]:
+    """ Test type var arguments.
+
+    :param bound_arg: bond parameter
+    :param either_arg: either of parameter
+    :return: tuple response
+    """
+    return bound_arg, either_arg
