@@ -30,7 +30,9 @@ setup(
         'setuptools_scm >= 1.7.0'
     ],
     install_requires=[
-        'Sphinx >= 1.6.3, < 2'
+        'Sphinx >= 1.6.3, < 2',
+        'pytypes >= 1.0b1, <2'
+
     ],
     extras_require={
         'testing': ['pytest >= 3.0.7, < 4',

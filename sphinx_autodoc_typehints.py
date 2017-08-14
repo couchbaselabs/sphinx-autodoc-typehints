@@ -3,14 +3,12 @@
 
 import inspect
 from inspect import unwrap
-from typing import Any, AnyStr, GenericMeta, TypeVar, get_type_hints
+from typing import Any, AnyStr, GenericMeta, TypeVar
 
-from io import BytesIO
-import re
+from pytypes import get_type_hints
 from sphinx.ext.autodoc import formatargspec
 from sphinx.util import logging
 from sphinx.util.inspect import getargspec
-from tokenize import COMMENT, INDENT, OP, tokenize
 
 TYPE_MARKER = '# type: '
 
@@ -92,7 +90,7 @@ def format_callable_annotation(annotation, params, prefix, aliases):
     return params, prefix
 
 
-def format_union_annotation(annotation, class_name, params, prefix, aliases):
+def format_union_annotation(annotation, class_name, params, prefix, aliases):  # pylint: disable=unused-argument
     prefix = ':data:'
     class_name = 'Union'
     if hasattr(annotation, '__union_params__'):
@@ -144,7 +142,7 @@ def process_docstring(app, what, name, obj, options, lines):  # pylint: disable=
             return  # Introspecting a slot wrapper will raise TypeError
 
         if not type_hints:
-            type_hints = get_comment_type_hint(obj)
+            LOGGER.debug('[autodoc-typehints][no-type] %s %s', id(obj), obj.__qualname__)
 
         LOGGER.debug('[autodoc-typehints][process-docstring] for %d id %s got %s', id(obj), obj.__qualname__,
                      '|'.join('{} - {}'.format(k, v) for k, v in type_hints.items()))
@@ -177,53 +175,6 @@ def insert_type_hints(lines, type_hints, what, aliases):
                 if line.startswith(search_for):
                     lines.insert(i, ':type {}: {}'.format(arg_name, formatted_annotation))
                     break
-
-
-TYPE_INFO = r'.*:# type: (.*)'
-TYPE_COMMENT_RE = re.compile(TYPE_INFO)
-
-
-def get_comment_type_hint(obj):
-    type_hints = {}
-    type_info = get_comment_type_str(obj)
-    if type_info:
-        obj_arg = inspect.signature(obj)
-        at_pos = type_info.rfind('->')
-        obj_globals = getattr(obj, '__globals__', None)
-        types = eval('{}'.format(type_info[:at_pos]), obj_globals)  # pylint: disable=eval-used
-        if not isinstance(types, tuple):
-            types = [types]
-        return_type = eval(type_info[at_pos + 2:], obj_globals)  # pylint: disable=eval-used
-        type_hints = {'return': return_type}
-        keys = list(obj_arg.parameters.keys())
-        if keys and keys[0] == 'self':
-            keys = keys[1:]  # skip self
-        type_hints.update(dict(zip(keys, types)))
-    return type_hints
-
-
-def get_comment_type_str(obj):
-    type_info = ''
-    try:
-        source = '\n'.join(inspect.getsourcelines(obj)[0]).encode()
-        tokens_generator = tokenize(BytesIO(source).readline)
-        found_func_end, prev_op = False, None
-        for tok_num, tok_val, _, _, _ in tokens_generator:
-            if found_func_end is False:
-                if tok_num == OP:
-                    if prev_op == ')' and tok_val == ':':
-                        found_func_end = True
-                    prev_op = tok_val
-            else:
-                if tok_num == INDENT:
-                    break
-                elif tok_num == COMMENT and tok_val.startswith(TYPE_MARKER):
-                    type_info = tok_val[len(TYPE_MARKER):]
-                    if type_info.strip() != 'ignore':
-                        break
-    except (IOError, TypeError):
-        pass
-    return type_info
 
 
 def setup(app):

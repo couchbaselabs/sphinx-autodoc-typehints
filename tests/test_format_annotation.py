@@ -1,6 +1,6 @@
-from collections import namedtuple
 from typing import Any, AnyStr, Callable, Dict, Generic, Mapping, Optional, Pattern, Tuple, Type, TypeVar, Union
 
+from collections import namedtuple
 import pytest
 
 from sphinx_autodoc_typehints import format_annotation, process_docstring
@@ -82,12 +82,13 @@ def test_format_annotation_type(type_param, expected_result):
     assert result.startswith(expected_result)
 
 
-def test_process_docstring_slotted():
-    A = namedtuple('A', ['config'])
-    B = namedtuple('B', ['sphinx_autodoc_alias'])
+Config = namedtuple('Config', ['config'])
+Alias = namedtuple('Alias', ['sphinx_autodoc_alias'])
 
+
+def test_process_docstring_slotted():
     lines = []
-    process_docstring(A(config=B(sphinx_autodoc_alias={})), 'class', 'SlotWrapper', Slotted, None, lines)
+    process_docstring(Config(config=Alias(sphinx_autodoc_alias={})), 'class', 'SlotWrapper', Slotted, None, lines)
     assert not lines
 
 
