@@ -44,11 +44,11 @@ class Slotted:
     (Dict[str, V], ':class:`~typing.Dict`\\[:class:`str`, \\-V]'),
     (Dict[T, U], ':class:`~typing.Dict`\\[\\~T, \\+U]'),
     (Dict[str, bool], ':class:`~typing.Dict`\\[:class:`str`, :class:`bool`]'),
-    (Tuple, ':class:`~typing.Tuple`'),
-    (Tuple[str, bool], ':class:`~typing.Tuple`\\[:class:`str`, :class:`bool`]'),
-    (Tuple[int, int, int], ':class:`~typing.Tuple`\\[:class:`int`, :class:`int`, '
+    (Tuple, ':data:`~typing.Tuple`'),
+    (Tuple[str, bool], ':data:`~typing.Tuple`\\[:class:`str`, :class:`bool`]'),
+    (Tuple[int, int, int], ':data:`~typing.Tuple`\\[:class:`int`, :class:`int`, '
                            ':class:`int`]'),
-    (Tuple[str, ...], ':class:`~typing.Tuple`\\[:class:`str`, ...]'),
+    (Tuple[str, ...], ':data:`~typing.Tuple`\\[:class:`str`, ...]'),
     (Union, ':data:`~typing.Union`'),
     (Union[str, bool], ':data:`~typing.Union`\\[:class:`str`, :class:`bool`]'),
     (Optional[str], ':data:`~typing.Optional`\\[:class:`str`]'),

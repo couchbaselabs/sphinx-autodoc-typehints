@@ -53,10 +53,14 @@ def format_typing_annotation(annotation, annotation_cls, aliases):
     elif class_name in ('Union', '_Union'):
         class_name, params, prefix = format_union_annotation(annotation, class_name, params, prefix, aliases)
     elif annotation_cls.__qualname__ == 'Tuple' and hasattr(annotation, '__tuple_params__'):
+        prefix = ':data:'
         # initial behavior, reworked in 3.6
         params = annotation.__tuple_params__  # pragma: no coverage
         if annotation.__tuple_use_ellipsis__:  # pragma: no coverage
             params += (Ellipsis,)  # pragma: no coverage
+    elif annotation_cls.__qualname__ == 'Tuple' and hasattr(annotation, '__args__'):
+        prefix = ':data:'
+        params = annotation.__args__  # pragma: no coverage
     elif annotation_cls.__qualname__ == 'Callable':
         params, prefix = format_callable_annotation(annotation, params, prefix, aliases)
     elif hasattr(annotation, 'type_var'):
