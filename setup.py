@@ -8,7 +8,7 @@ setup(
     description='Type hints (PEP 484) support for the Sphinx autodoc extension (comments too)',
     author='Bernat Gabor',
     author_email='bgabor8@bloomberg.net',
-    url='https://github.com/bgabor8/sphinx-autodoc-typehints',
+    url='https://github.com/gaborbernat/sphinx-autodoc-typehints',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Framework :: Sphinx :: Extension',

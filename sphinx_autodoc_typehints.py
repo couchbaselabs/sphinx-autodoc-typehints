@@ -156,14 +156,14 @@ def process_docstring(app, what, name, obj, options, lines):  # pylint: disable=
             return  # Introspecting a slot wrapper will raise TypeError
 
         if not type_hints:
-            LOGGER.debug('[autodoc-typehints][no-type] %s %s', id(obj), obj.__qualname__)
+            LOGGER.debug('[autodoc-typehints][no-type] %s %s', id(obj), getattr(obj, '__qualname__', None))
 
-        LOGGER.debug('[autodoc-typehints][process-docstring] for %d id %s got %s', id(obj), obj.__qualname__,
+        LOGGER.debug('[autodoc-typehints][process-docstring] for %d id %s got %s', id(obj), getattr(obj, '__qualname__', None),
                      '|'.join('{} - {}'.format(k, v) for k, v in type_hints.items()))
 
         insert_type_hints(lines, type_hints, what, app.config.sphinx_autodoc_alias)
 
-
+                                                     
 def insert_type_hints(lines, type_hints, what, aliases):
     for arg_name, annotation in type_hints.items():
         formatted_annotation = format_annotation(annotation, aliases)
