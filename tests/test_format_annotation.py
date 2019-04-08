@@ -1,18 +1,5 @@
 from collections import namedtuple
-from typing import (
-    Any,
-    AnyStr,
-    Callable,
-    Dict,
-    Generic,
-    Mapping,
-    Optional,
-    Pattern,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import Any, AnyStr, Callable, Dict, Generic, Mapping, Optional, Pattern, Tuple, Type, TypeVar, Union
 
 import pytest
 

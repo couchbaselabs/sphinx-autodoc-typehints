@@ -6,9 +6,8 @@ from inspect import unwrap
 from typing import Any, AnyStr, GenericMeta, TypeVar
 
 from pytypes import get_type_hints
-from sphinx.ext.autodoc import formatargspec
 from sphinx.util import logging
-from sphinx.util.inspect import getargspec
+from sphinx.util.inspect import Signature
 
 TYPE_MARKER = "# type: "
 
@@ -138,15 +137,36 @@ def process_signature(
             obj = getattr(obj, "__init__")
 
         obj = unwrap(obj)
-        try:
-            argspec = getargspec(obj)
-        except TypeError:
-            return
+        signature = Signature(obj)
+        parameters = [
+            param.replace(annotation=inspect.Parameter.empty) for param in signature.signature.parameters.values()
+        ]
 
-        if what in ("method", "class", "exception") and argspec.args:
-            del argspec.args[0]
+        if parameters:
+            if what in ("class", "exception"):
+                del parameters[0]
+            elif what == "method":
+                outer = inspect.getmodule(obj)
+                for clsname in obj.__qualname__.split(".")[:-1]:
+                    outer = getattr(outer, clsname)
 
-        return formatargspec(obj, *argspec[:-1]), None
+                method_name = obj.__name__
+                if method_name.startswith("__") and not method_name.endswith("__"):
+                    # If the method starts with double underscore (dunder)
+                    # Python applies mangling so we need to prepend the class name.
+                    # This doesn't happen if it always ends with double underscore.
+                    class_name = obj.__qualname__.split(".")[-2]
+                    method_name = "_{c}{m}".format(c=class_name, m=method_name)
+
+                method_object = outer.__dict__[method_name]
+                if not isinstance(method_object, (classmethod, staticmethod)):
+                    del parameters[0]
+
+        signature.signature = signature.signature.replace(
+            parameters=parameters, return_annotation=inspect.Signature.empty
+        )
+
+        return signature.format_args().replace("\\", "\\\\"), None
 
 
 # noinspection PyUnusedLocal

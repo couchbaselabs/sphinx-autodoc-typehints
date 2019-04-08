@@ -27,6 +27,6 @@ setup(
     zip_safe=True,
     py_modules=["sphinx_autodoc_typehints"],
     setup_requires=["setuptools_scm >= 1.7.0"],
-    install_requires=["Sphinx >= 1.6.3, < 2", "pytypes >= 1.0b1, <2"],
+    install_requires=["Sphinx >= 2.0.0, < 3", "pytypes >= 1.0b5, <2"],
     extras_require={"testing": ["pytest >= 3.0.7, < 4"], ':python_version < "3.5"': ["typing >= 3.5.3, <4"]},
 )
