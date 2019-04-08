@@ -2,8 +2,8 @@
 """ Test type hints. """
 from typing import Tuple, TypeVar, Union
 
-BoundArg = TypeVar('BoundArg', bound=int)  # pylint: disable=invalid-name
-EitherOfArg = TypeVar('EitherOfArg', str, int)  # pylint: disable=invalid-name
+BoundArg = TypeVar("BoundArg", bound=int)  # pylint: disable=invalid-name
+EitherOfArg = TypeVar("EitherOfArg", str, int)  # pylint: disable=invalid-name
 
 
 def test_param_init_return_str(param: int) -> str:

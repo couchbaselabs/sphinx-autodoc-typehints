@@ -15,13 +15,14 @@ allowing you to migrate from this:
         :param str unit: the unit for the value (kg, m, etc.)
         :rtype: str
         """
-        return '{} {}'.format(value, unit)
+        return "{} {}".format(value, unit)
 
 to this:
 
 .. code-block:: python
 
     from typing import Union
+
 
     def format_unit(value: Union[float, int], unit: str) -> str:
         """
@@ -30,7 +31,7 @@ to this:
         :param value: a numeric value
         :param unit: the unit for the value (kg, m, etc.)
         """
-        return '{} {}'.format(value, unit)
+        return "{} {}".format(value, unit)
 
 
 Installation and setup
@@ -44,10 +45,7 @@ Then, add the extension to your ``conf.py``:
 
 .. code-block:: python
 
-    extensions = [
-        'sphinx.ext.autodoc',
-        'sphinx_autodoc_typehints'
-    ]
+    extensions = ["sphinx.ext.autodoc", "sphinx_autodoc_typehints"]
 
 
 How it works
