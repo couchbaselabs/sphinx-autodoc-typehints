@@ -147,6 +147,8 @@ def process_signature(
                 del parameters[0]
             elif what == "method":
                 outer = inspect.getmodule(obj)
+                if outer is None:
+                    return 
                 for clsname in obj.__qualname__.split(".")[:-1]:
                     outer = getattr(outer, clsname)
 
