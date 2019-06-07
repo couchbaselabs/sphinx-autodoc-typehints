@@ -3,7 +3,12 @@
 
 import inspect
 from inspect import unwrap
-from typing import Any, AnyStr, GenericMeta, TypeVar
+from typing import Any, AnyStr, TypeVar
+try:
+    from typing import GenericMeta  # python 3.6
+except ImportError:
+    # in 3.7, genericmeta doesn't exist but we don't need it
+    class GenericMeta(type): pass
 
 from pytypes import get_type_hints
 from sphinx.util import logging
@@ -137,7 +142,10 @@ def process_signature(
             obj = getattr(obj, "__init__")
 
         obj = unwrap(obj)
-        signature = Signature(obj)
+        try:
+            signature = Signature(obj)
+        except:
+            signature = Signature(lambda: None)
         parameters = [
             param.replace(annotation=inspect.Parameter.empty) for param in signature.signature.parameters.values()
         ]
@@ -150,7 +158,7 @@ def process_signature(
                 if outer is None:
                     return 
                 for clsname in obj.__qualname__.split(".")[:-1]:
-                    outer = getattr(outer, clsname)
+                    outer = getattr(outer, clsname, outer)
 
                 method_name = obj.__name__
                 if method_name.startswith("__") and not method_name.endswith("__"):
@@ -160,7 +168,7 @@ def process_signature(
                     class_name = obj.__qualname__.split(".")[-2]
                     method_name = "_{c}{m}".format(c=class_name, m=method_name)
 
-                method_object = outer.__dict__[method_name]
+                method_object = getattr(outer,'__dict__',{}).get(method_name, None)
                 if not isinstance(method_object, (classmethod, staticmethod)):
                     del parameters[0]
 
@@ -183,7 +191,7 @@ def process_docstring(app, what, name, obj, options, lines):  # pylint: disable=
         obj = unwrap(obj)
         try:
             type_hints = get_type_hints(obj)
-        except (AttributeError, TypeError):
+        except (AttributeError, TypeError, ValueError, Exception):
             return  # Introspecting a slot wrapper will raise TypeError
 
         if not type_hints:
