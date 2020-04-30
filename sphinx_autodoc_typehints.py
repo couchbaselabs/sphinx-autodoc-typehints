@@ -361,6 +361,7 @@ def split_type_comment_args(comment):
 from collections import defaultdict
 
 all_args={}
+results=open("results.json","w+")
 def register_args(name, new_args, type):
     #logger.error("Register {} type {}: {}".format(name, type, new_args))
     entry=all_args.get(name,{})
@@ -371,7 +372,7 @@ def register_args(name, new_args, type):
     if set(entry.keys()).intersection(stages)==stages:
         for k in stages:
             entry.pop(k)
-        logger.error("Got args for {}: {}".format(name, entry ))
+        results.writelines(['"{}":{}\n'.format(name,entry)])
         del all_args[name]
 def process_docstring(app, what, name, obj, options, lines):
     original_obj = obj
