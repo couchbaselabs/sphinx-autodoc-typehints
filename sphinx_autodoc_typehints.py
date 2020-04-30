@@ -362,17 +362,29 @@ from collections import defaultdict
 
 all_args={}
 results=open("results.json","w+")
+import json
+results.writelines(["{\n"])
+
 def register_args(name, new_args, type):
     #logger.error("Register {} type {}: {}".format(name, type, new_args))
     entry=all_args.get(name,{})
     entry[type]=True
     all_args[name]=entry
-    entry.update(new_args)
+    for k, v in new_args.items():
+        old_version=entry.get(k, None)
+        if old_version=="Mandatory":
+            continue
+        if v=="Mandatory":
+            if old_version:
+                del entry[k]
+                continue
+        entry[k]=v
+
     stages={"docstring", "signature"}
     if set(entry.keys()).intersection(stages)==stages:
-        for k in stages:
+        for k in stages.union({k for k,v in entry.items() if v=="Mandatory"}):
             entry.pop(k)
-        results.writelines(['"{}":{}\n'.format(name,entry)])
+        results.writelines(['"{}":{},\n'.format(name,json.dumps(entry))])
         del all_args[name]
 def process_docstring(app, what, name, obj, options, lines):
     original_obj = obj
@@ -388,17 +400,21 @@ def process_docstring(app, what, name, obj, options, lines):
         #logger.error("Got all type hints: {}".format(type_hints))
         local_args={}
         for line in lines:
-            searchfor = r'\:param:?.*\s+(.*?):'
+            searchfor = r'\:(param|type):?.*\s+(.*?)(\s+(.*?))?:'
             import re
             pattern=re.compile(searchfor)
             match=pattern.search(line)
             if match:
                 #print("Got match from {}:{}".format(line, match))
-                arg_name=next(iter(match.groups()),None)
+                groups = match.groups()
+                arg_name=groups[1]
+                if groups[0]=="type":
+                    pass
+                type=groups[2] or "Any"
                 if arg_name:
                     #print("Got arg_name from {}:{}".format(line, arg_name))
 
-                    local_args[arg_name]="Any:"
+                    local_args[arg_name]=type
             else:
                 pass
                 #print("couldn't get match from {}".format(line))
@@ -428,7 +444,7 @@ def process_docstring(app, what, name, obj, options, lines):
                     insert_index,
                     ':type {}: {}'.format(argname, formatted_annotation)
                 )
-                local_args[argname]+=formatted_annotation
+                local_args[argname]=formatted_annotation
         if local_args:
             register_args(name, local_args, "docstring")
 
