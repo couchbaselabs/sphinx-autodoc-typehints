@@ -164,6 +164,11 @@ def process_signature(app, what: str, name: str, obj, options, signature, return
         for param in signature.signature.parameters.values()
     ]
 
+    local_args={}
+    for param in parameters:
+        if param.default!=inspect.Parameter.empty:
+            local_args[param.name] = "Mandatory"
+    register_args(name, local_args, "signature")
     if '<locals>' in obj.__qualname__:
         logger.warning(
             'Cannot treat a function defined as a local function: "%s"  (use @functools.wraps)',
@@ -193,8 +198,13 @@ def process_signature(app, what: str, name: str, obj, options, signature, return
     signature.signature = signature.signature.replace(
         parameters=parameters,
         return_annotation=inspect.Signature.empty)
-
-    return signature.format_args().replace('\\', '\\\\'), None
+    result=signature.format_args()
+    #logger.error("Got signature {}".format(result))
+    result=result.replace('\\*', '*')
+    #logger.error("Got new signature {}".format(result))
+    #result=result.replace('\\', '\\\\')
+    #logger.error("Got final signature {}".format(result))
+    return result, None
 
 
 def get_all_type_hints(obj, name):
@@ -282,6 +292,7 @@ def backfill_type_hints(obj, name):
         rv['return'] = comment_returns
 
     args = load_args(obj_ast)
+
     comment_args = split_type_comment_args(comment_args_str)
     is_inline = len(comment_args) == 1 and comment_args[0] == "..."
     if not is_inline:
@@ -347,8 +358,21 @@ def split_type_comment_args(comment):
 
     add(comment[start_arg_at: at + 1])
     return result
+from collections import defaultdict
 
-
+all_args={}
+def register_args(name, new_args, type):
+    #logger.error("Register {} type {}: {}".format(name, type, new_args))
+    entry=all_args.get(name,{})
+    entry[type]=True
+    all_args[name]=entry
+    entry.update(new_args)
+    stages={"docstring", "signature"}
+    if set(entry.keys()).intersection(stages)==stages:
+        for k in stages:
+            entry.pop(k)
+        logger.error("Got args for {}: {}".format(name, entry ))
+        del all_args[name]
 def process_docstring(app, what, name, obj, options, lines):
     original_obj = obj
     if isinstance(obj, property):
@@ -360,7 +384,23 @@ def process_docstring(app, what, name, obj, options, lines):
 
         obj = inspect.unwrap(obj)
         type_hints = get_all_type_hints(obj, name)
+        #logger.error("Got all type hints: {}".format(type_hints))
+        local_args={}
+        for line in lines:
+            searchfor = r'\:param:?.*\s+(.*?):'
+            import re
+            pattern=re.compile(searchfor)
+            match=pattern.search(line)
+            if match:
+                #print("Got match from {}:{}".format(line, match))
+                arg_name=next(iter(match.groups()),None)
+                if arg_name:
+                    #print("Got arg_name from {}:{}".format(line, arg_name))
 
+                    local_args[arg_name]="Any:"
+            else:
+                pass
+                #print("couldn't get match from {}".format(line))
         for argname, annotation in type_hints.items():
             if argname == 'return':
                 continue  # this is handled separately later
@@ -369,7 +409,7 @@ def process_docstring(app, what, name, obj, options, lines):
 
             formatted_annotation = format_annotation(
                 annotation, fully_qualified=app.config.typehints_fully_qualified)
-
+            #logger.error("formatted arg {} as {}".format(argname, formatted_annotation))
             searchfor = ':param {}:'.format(argname)
             insert_index = None
 
@@ -387,6 +427,9 @@ def process_docstring(app, what, name, obj, options, lines):
                     insert_index,
                     ':type {}: {}'.format(argname, formatted_annotation)
                 )
+                local_args[argname]+=formatted_annotation
+        if local_args:
+            register_args(name, local_args, "docstring")
 
         if 'return' in type_hints and not inspect.isclass(original_obj):
             formatted_annotation = format_annotation(
@@ -408,7 +451,7 @@ def process_docstring(app, what, name, obj, options, lines):
                     insert_index += 1
 
                 lines.insert(insert_index, ':rtype: {}'.format(formatted_annotation))
-
+    #logger.error("final lines is {}".format(lines))
 
 def builder_ready(app):
     if app.config.set_type_checking_flag:
